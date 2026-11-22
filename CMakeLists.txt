@@ -138,6 +138,10 @@ option(ENABLE_SCRIPTING "Enable RPC server for scripting" ON)
 CMAKE_DEPENDENT_OPTION(ENABLE_SCRIPTING_SYNC "Run scripting RPC requests that access emulated state on the emulation thread, in sync with the core" ON "ENABLE_SCRIPTING" OFF)
 CMAKE_DEPENDENT_OPTION(ENABLE_FREECAM "Enable the free camera transform set through the RPC server" ${ENABLE_QT} "ENABLE_SCRIPTING" OFF)
 option(ENABLE_GDBSTUB "Enable GDB stub for emulated applications" ON)
+option(ENABLE_OPENSSL "Enable OpenSSL/LibreSSL (HTTPS)" ON)
+option(ENABLE_HTTPLIB "Enable cpp-httplib (HTTP service, NUS downloads)" ON)
+option(ENABLE_CEMUHOOK_UDP "Enable cemuhook UDP motion/touch input client" ON)
+option(ENABLE_ENET "Enable ENet (multiplayer rooms)" ON)
 
 CMAKE_DEPENDENT_OPTION(ENABLE_CUBEB "Enables the cubeb audio backend" ON "NOT IOS" OFF)
 option(ENABLE_OPENAL "Enables the OpenAL audio backend" ON)
@@ -198,6 +202,21 @@ if(ENABLE_LIBRETRO)
     foreach(_opt IN LISTS _LIBRETRO_INCOMPATIBLE_OPTIONS)
         set(${_opt} OFF CACHE BOOL "Disabled for libretro" FORCE)
     endforeach()
+endif()
+
+# Handle incompatible options for Wii U builds
+if (WIIU)
+    set(_WIIU_INCOMPATIBLE_OPTIONS
+        ENABLE_SDL2 ENABLE_QT ENABLE_QT_TRANSLATION ENABLE_QT_UPDATE_CHECKER ENABLE_TESTS
+        ENABLE_ROOM_STANDALONE ENABLE_WEB_SERVICE ENABLE_SCRIPTING
+        ENABLE_SCRIPTING_SYNC ENABLE_FREECAM ENABLE_GDBSTUB ENABLE_CUBEB ENABLE_OPENAL
+        ENABLE_LIBUSB ENABLE_FFMPEG ENABLE_OPENGL ENABLE_VULKAN ENABLE_DISCORD_RPC
+        ENABLE_MICROPROFILE ENABLE_LIBRETRO ENABLE_OPENSSL ENABLE_HTTPLIB ENABLE_CEMUHOOK_UDP
+        ENABLE_ENET ENABLE_NATIVE_OPTIMIZATION)
+    foreach(_opt IN LISTS _WIIU_INCOMPATIBLE_OPTIONS)
+        set(${_opt} OFF CACHE BOOL "Disabled for Wii U" FORCE)
+    endforeach()
+    set(ENABLE_SOFTWARE_RENDERER ON CACHE BOOL "Required for Wii U" FORCE)
 endif()
 
 # Pass the following values to C++ land
@@ -587,7 +606,9 @@ if (NOT USE_SYSTEM_BOOST)
     add_definitions( -DBOOST_ALL_NO_LIB )
     add_library(Boost::boost ALIAS boost)
     add_library(Boost::serialization ALIAS boost_serialization)
-    add_library(Boost::iostreams ALIAS boost_iostreams)
+    if (NOT WIIU)
+        add_library(Boost::iostreams ALIAS boost_iostreams)
+    endif()
 endif()
 
 # SDL2

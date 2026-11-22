@@ -1,17 +1,13 @@
 add_library(network STATIC EXCLUDE_FROM_ALL
-    announce_multiplayer_session.cpp
     announce_multiplayer_session.h
     artic_base/artic_base_client.cpp
     artic_base/artic_base_client.h
     artic_base/artic_base_common.h
-    network.cpp
     network.h
     packet.cpp
     packet.h
     precompiled_headers.h
-    room.cpp
     room.h
-    room_member.cpp
     room_member.h
     socket_manager.cpp
     socket_manager.h
@@ -25,7 +21,19 @@ if (ENABLE_WEB_SERVICE)
     target_link_libraries(network PRIVATE web_service)
 endif()
 
-target_link_libraries(network PRIVATE citra_common enet Boost::serialization httplib)
+target_link_libraries(network PRIVATE citra_common Boost::serialization)
+if (ENABLE_ENET)
+    target_sources(network PRIVATE
+        announce_multiplayer_session.cpp
+        network.cpp
+        room.cpp
+        room_member.cpp
+    )
+    target_link_libraries(network PRIVATE enet)
+endif()
+if (ENABLE_HTTPLIB)
+    target_link_libraries(network PRIVATE httplib)
+endif()
 
 if (CITRA_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(network PRIVATE precompiled_headers.h)

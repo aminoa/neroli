@@ -112,6 +112,12 @@ add_library(citra_common STATIC EXCLUDE_FROM_ALL
 
 target_include_directories(citra_common PUBLIC ${CMAKE_BINARY_DIR}/src)
 
+if (WIIU)
+  # Shim headers for POSIX and library facilities that Cafe OS lacks
+  target_include_directories(citra_common BEFORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/cafe/include)
+  target_sources(citra_common PRIVATE cafe/atomic64.cpp)
+endif()
+
 if (UNIX AND NOT APPLE)
   target_sources(citra_common PRIVATE
     linux/gamemode.cpp
@@ -155,7 +161,10 @@ endif()
 
 create_target_directory_groups(citra_common)
 
-target_link_libraries(citra_common PUBLIC fmt microprofile Boost::boost Boost::serialization Boost::iostreams)
+target_link_libraries(citra_common PUBLIC fmt microprofile Boost::boost Boost::serialization)
+if (NOT WIIU)
+    target_link_libraries(citra_common PUBLIC Boost::iostreams)
+endif()
 target_link_libraries(citra_common PRIVATE cryptopp microtar citra_zstd)
 
 if ("x86_64" IN_LIST ARCHITECTURE)

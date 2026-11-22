@@ -39,13 +39,16 @@ else()
     target_link_libraries(boost_serialization PUBLIC boost)
 
     # Boost::iostreams
-    add_library(
-        boost_iostreams
-        STATIC
-        ${CMAKE_SOURCE_DIR}/externals/boost/libs/iostreams/src/file_descriptor.cpp
-        ${CMAKE_SOURCE_DIR}/externals/boost/libs/iostreams/src/mapped_file.cpp
-    )
-    target_link_libraries(boost_iostreams PUBLIC boost)
+    # Replace FileUtil::OpenFStream with a standard iostream
+    if (NOT WIIU)
+        add_library(
+            boost_iostreams
+            STATIC
+            ${CMAKE_SOURCE_DIR}/externals/boost/libs/iostreams/src/file_descriptor.cpp
+            ${CMAKE_SOURCE_DIR}/externals/boost/libs/iostreams/src/mapped_file.cpp
+        )
+        target_link_libraries(boost_iostreams PUBLIC boost)
+    endif()
     # Add additional boost libs here; remember to ALIAS them in the root CMakeLists!
 endif()
 
@@ -71,7 +74,15 @@ if(USE_SYSTEM_CRYPTOPP)
 else()
     set(CRYPTOPP_BUILD_TESTING OFF CACHE BOOL "")
     set(CRYPTOPP_INSTALL OFF CACHE BOOL "")
+    if (WIIU)
+        # For the PPC fast path, Crypto++ use sysconf and sigprocmask, and Cafe OS lack POSIX signals, so use portable C++ versions
+        set(CRYPTOPP_DISABLE_ASM ON CACHE BOOL "" FORCE)
+    endif()
     add_subdirectory(cryptopp EXCLUDE_FROM_ALL)
+    if (WIIU)
+        # RPX conversion does not support the relocations used by position-independent code.
+        set_target_properties(cryptopp PROPERTIES POSITION_INDEPENDENT_CODE OFF)
+    endif()
 endif()
 
 # dds-ktx
@@ -130,6 +141,14 @@ if ("x86_64" IN_LIST ARCHITECTURE OR "arm64" IN_LIST ARCHITECTURE)
         set(DYNARMIC_USE_PRECOMPILED_HEADERS ${CITRA_USE_PRECOMPILED_HEADERS} CACHE BOOL "")
         add_subdirectory(dynarmic EXCLUDE_FROM_ALL)
     endif()
+endif()
+
+# Video code uses dynarmic's bundled robin-map but we don't build that anymore so need to add library manually
+# Future goal is to re-enable dynarmic so this will be removed then
+if (NOT TARGET tsl::robin_map)
+    add_library(tsl_robin_map INTERFACE)
+    target_include_directories(tsl_robin_map SYSTEM INTERFACE ./dynarmic/externals/robin-map/include)
+    add_library(tsl::robin_map ALIAS tsl_robin_map)
 endif()
 
 # getopt
@@ -224,6 +243,12 @@ if(USE_SYSTEM_ZSTD)
         message(FATAL_ERROR "No usable zstd CMake target was found")
     endif()
 else()
+    if (WIIU)
+        # Cafe OS doesn't use .note.GNU-stack section and elf2rpl errors with it
+        set(C_FLAG_WA_NOEXECSTACK OFF CACHE INTERNAL "")
+        set(CXX_FLAG_WA_NOEXECSTACK OFF CACHE INTERNAL "")
+        set(LD_FLAG_WL_Z_NOEXECSTACK OFF CACHE INTERNAL "")
+    endif()
     # These must be cache values because zstd's own CMake files define options.
     set(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "" FORCE)
     set(ZSTD_BUILD_PROGRAMS OFF CACHE BOOL "" FORCE)
@@ -233,6 +258,9 @@ else()
 
     add_subdirectory(zstd/build/cmake EXCLUDE_FROM_ALL)
 
+    if (WIIU)
+        set_target_properties(libzstd_static PROPERTIES POSITION_INDEPENDENT_CODE OFF)
+    endif()
     target_include_directories(libzstd_static INTERFACE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/externals/zstd/lib>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/externals/zstd/lib/common>
@@ -258,13 +286,15 @@ else()
 endif()
 
 # ENet
-if(USE_SYSTEM_ENET)
-    find_package(libenet REQUIRED)
-    add_library(enet INTERFACE)
-    target_link_libraries(enet INTERFACE libenet::libenet)
-else()
-    add_subdirectory(enet EXCLUDE_FROM_ALL)
-    target_include_directories(enet INTERFACE ./enet/include)
+if (ENABLE_ENET)
+    if(USE_SYSTEM_ENET)
+        find_package(libenet REQUIRED)
+        add_library(enet INTERFACE)
+        target_link_libraries(enet INTERFACE libenet::libenet)
+    else()
+        add_subdirectory(enet EXCLUDE_FROM_ALL)
+        target_include_directories(enet INTERFACE ./enet/include)
+    endif()
 endif()
 
 # Cubeb
@@ -326,7 +356,9 @@ else()
 endif()
 
 # OpenSSL
-if (USE_SYSTEM_OPENSSL)
+if (NOT ENABLE_OPENSSL)
+    set(OPENSSL_LIBRARIES "")
+elseif (USE_SYSTEM_OPENSSL)
     find_package(OpenSSL 1.1)
     set(OPENSSL_LIBRARIES OpenSSL::SSL OpenSSL::Crypto)
 else()
@@ -367,8 +399,10 @@ else()
     target_include_directories(httplib INTERFACE ./httplib)
     target_disable_warnings(httplib)
 endif()
-target_compile_options(httplib INTERFACE -DCPPHTTPLIB_OPENSSL_SUPPORT)
-target_link_libraries(httplib INTERFACE ${OPENSSL_LIBRARIES})
+if (ENABLE_OPENSSL)
+    target_compile_options(httplib INTERFACE -DCPPHTTPLIB_OPENSSL_SUPPORT)
+    target_link_libraries(httplib INTERFACE ${OPENSSL_LIBRARIES})
+endif()
 
 if (UNIX AND NOT APPLE)
     add_subdirectory(gamemode EXCLUDE_FROM_ALL)

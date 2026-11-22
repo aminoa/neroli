@@ -326,8 +326,6 @@ add_library(citra_core STATIC EXCLUDE_FROM_ALL
     hle/service/hid/hid_spvr.h
     hle/service/hid/hid_user.cpp
     hle/service/hid/hid_user.h
-    hle/service/http/http_c.cpp
-    hle/service/http/http_c.h
     hle/service/ir/extra_hid.cpp
     hle/service/ir/extra_hid.h
     hle/service/ir/ir.cpp
@@ -466,8 +464,6 @@ add_library(citra_core STATIC EXCLUDE_FROM_ALL
     hw/y2r.h
     loader/3dsx.cpp
     loader/3dsx.h
-    loader/artic.cpp
-    loader/artic.h
     loader/elf.cpp
     loader/elf.h
     loader/loader.cpp
@@ -510,7 +506,23 @@ endif()
 create_target_directory_groups(citra_core)
 
 target_link_libraries(citra_core PUBLIC citra_common PRIVATE audio_core network video_core input_common)
-target_link_libraries(citra_core PRIVATE Boost::boost Boost::serialization Boost::iostreams httplib)
+target_link_libraries(citra_core PRIVATE Boost::boost Boost::serialization)
+if (NOT WIIU)
+    target_link_libraries(citra_core PRIVATE Boost::iostreams)
+    # The Artic Base loader streams a game from a real console over the network.
+    target_sources(citra_core PRIVATE
+        loader/artic.cpp
+        loader/artic.h
+    )
+endif()
+if (ENABLE_HTTPLIB)
+    # The HTTP service is built entirely on cpp-httplib.
+    target_sources(citra_core PRIVATE
+        hle/service/http/http_c.cpp
+        hle/service/http/http_c.h
+    )
+    target_link_libraries(citra_core PRIVATE httplib)
+endif()
 target_link_libraries(citra_core PUBLIC dds-ktx PRIVATE cryptopp fmt lodepng open_source_archives)
 
 if (ENABLE_WEB_SERVICE)
@@ -557,11 +569,15 @@ if ("x86_64" IN_LIST ARCHITECTURE OR "arm64" IN_LIST ARCHITECTURE)
         arm/dynarmic/arm_dynarmic_cp15.h
         arm/dynarmic/arm_exclusive_monitor.cpp
         arm/dynarmic/arm_exclusive_monitor.h
-        arm/dynarmic/arm_tick_counts.cpp
-        arm/dynarmic/arm_tick_counts.h
     )
     target_link_libraries(citra_core PRIVATE dynarmic)
 endif()
+
+# The instruction tick model has no dependency on dynarmic and is shared with FastInterp.
+target_sources(citra_core PRIVATE
+    arm/dynarmic/arm_tick_counts.cpp
+    arm/dynarmic/arm_tick_counts.h
+)
 
 # FastInterp's dispatch loop requires GCC/Clang computed goto; MSVC builds
 # fall back to DynCom when the JIT is off.
