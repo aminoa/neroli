@@ -3,8 +3,6 @@
 // Refer to the misc/licenses/gplv2.txt file included.
 
 #include <sstream>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/stream.hpp>
 #include "common/assert.h"
 #include "common/common_paths.h"
 #include "common/file_util.h"

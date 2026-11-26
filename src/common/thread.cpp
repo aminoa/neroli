@@ -23,6 +23,9 @@
 #ifndef _WIN32
 #include <unistd.h>
 #endif
+#ifdef __WIIU__
+#include <coreinit/thread.h>
+#endif
 
 #ifdef __FreeBSD__
 #define cpu_set_t cpuset_t
@@ -56,6 +59,14 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
         break;
     }
     SetThreadPriority(handle, windows_priority);
+}
+
+#elif defined(__WIIU__)
+
+void SetCurrentThreadPriority(ThreadPriority new_priority) {
+    // Cafe OS priorities run from 0 (highest) to 31 (lowest), with 16 as the default.
+    // Maps Low..Critical (0..4) onto 20, 16, 12, 8, 4.
+    OSSetThreadPriority(OSGetCurrentThread(), 20 - 4 * static_cast<s32>(new_priority));
 }
 
 #else
@@ -98,6 +109,9 @@ void SetCurrentThreadName(const char* name) {
     pthread_set_name_np(pthread_self(), name);
 #elif defined(__NetBSD__)
     pthread_setname_np(pthread_self(), "%s", (void*)name);
+#elif defined(__WIIU__)
+    // Cafe OS keeps the pointer rather than copying the name, so the copy is never freed.
+    OSSetThreadName(OSGetCurrentThread(), strdup(name));
 #elif defined(__linux__)
     // Linux limits thread names to 15 characters and will outright reject any
     // attempt to set a longer name with ERANGE.

@@ -1485,7 +1485,7 @@ void Module::APTInterface::GetAppletProgramInfo(Kernel::HLERequestContext& ctx) 
     }
 
     rb.Push(res);
-    rb.Push(res.IsSuccess() ? info[0].version : 0);
+    rb.Push(res.IsSuccess() ? static_cast<u16>(info[0].version) : 0);
 }
 
 void Module::APTInterface::HardwareResetAsync(Kernel::HLERequestContext& ctx) {
