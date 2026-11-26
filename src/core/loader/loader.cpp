@@ -14,7 +14,9 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/am/am.h"
 #include "core/loader/3dsx.h"
+#ifndef __WIIU__
 #include "core/loader/artic.h"
+#endif
 #include "core/loader/elf.h"
 #include "core/loader/ncch.h"
 
@@ -116,6 +118,7 @@ static std::unique_ptr<AppLoader> GetFileLoader(Core::System& system, FileUtil::
     case FileType::CCI:
         return std::make_unique<AppLoader_NCCH>(system, std::move(file), filepath);
 
+#ifndef __WIIU__
     case FileType::ARTIC: {
         Apploader_Artic::ArticInitMode mode = Apploader_Artic::ArticInitMode::NONE;
         if (filename.starts_with("articinio://")) {
@@ -143,6 +146,7 @@ static std::unique_ptr<AppLoader> GetFileLoader(Core::System& system, FileUtil::
         }
         return std::make_unique<Apploader_Artic>(system, server_addr, port, mode);
     }
+#endif
 
     default:
         return nullptr;

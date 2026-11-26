@@ -3,11 +3,22 @@
 // Refer to the misc/licenses/gplv2.txt file included.
 
 #include <memory>
+#ifdef ENABLE_HTTPLIB
 #include <httplib.h>
+#endif
 #include "common/logging/log.h"
 #include "core/nus_download.h"
 
 namespace Core::NUS {
+
+#ifndef ENABLE_HTTPLIB
+
+std::optional<std::vector<u8>> Download(const std::string& path) {
+    LOG_ERROR(WebService, "Cannot download {}: built without HTTP support", path);
+    return {};
+}
+
+#else
 
 std::optional<std::vector<u8>> Download(const std::string& path) {
     constexpr auto HOST = "http://nus.cdn.c.shop.nintendowifi.net";
@@ -45,5 +56,7 @@ std::optional<std::vector<u8>> Download(const std::string& path) {
 
     return std::vector<u8>(response.body.begin(), response.body.end());
 }
+
+#endif // ENABLE_HTTPLIB
 
 } // namespace Core::NUS

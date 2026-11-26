@@ -128,7 +128,7 @@ ResultStatus AppLoader_NCCH::LoadExec(std::shared_ptr<Kernel::Process>& process)
         return ResultStatus::ErrorNotLoaded;
 
     std::vector<u8> code;
-    u64_le program_id;
+    u64 program_id;
     if (ResultStatus::Success == ReadCode(code) &&
         ResultStatus::Success == ReadProgramId(program_id)) {
         if (IsGbaVirtualConsole(code)) {
@@ -330,7 +330,7 @@ ResultStatus AppLoader_NCCH::OpenUpdateNCCH() {
 }
 
 ResultStatus AppLoader_NCCH::Load(std::shared_ptr<Kernel::Process>& process) {
-    u64_le ncch_program_id;
+    u64 ncch_program_id;
 
     if (is_loaded)
         return ResultStatus::ErrorAlreadyLoaded;
@@ -348,12 +348,14 @@ ResultStatus AppLoader_NCCH::Load(std::shared_ptr<Kernel::Process>& process) {
         overlay_ncch = &update_ncch;
     }
 
+#ifdef ENABLE_ENET
     if (auto room_member = Network::GetRoomMember().lock()) {
         Network::GameInfo game_info;
         ReadTitle(game_info.name, false);
         game_info.id = ncch_program_id;
         room_member->SendGameInfo(game_info);
     }
+#endif
 
     is_loaded = true; // Set state to loaded
 

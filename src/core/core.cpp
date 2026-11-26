@@ -373,7 +373,7 @@ System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::st
         return ResultStatus::ErrorGetLoader;
     }
 
-    u64_le program_id = 0;
+    u64 program_id = 0;
     app_loader->ReadProgramId(program_id);
     if (restore_plugin_context.has_value() && restore_plugin_context->is_enabled &&
         restore_plugin_context->use_user_load_parameters) {
@@ -823,10 +823,12 @@ void System::Shutdown(bool is_deserializing) {
         video_dumper->StopDumping();
     }
 
+#ifdef ENABLE_ENET
     if (auto room_member = Network::GetRoomMember().lock()) {
         Network::GameInfo game_info{};
         room_member->SendGameInfo(game_info);
     }
+#endif
 
     memory.reset();
 

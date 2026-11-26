@@ -9,8 +9,10 @@
 #include <span>
 #include <string>
 #include <vector>
+#ifndef __WIIU__
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
+#endif
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
@@ -492,7 +494,11 @@ std::vector<std::shared_ptr<CheatBase>> GatewayCheat::LoadFile(const std::string
         return cheats;
     }
 
+#ifdef __WIIU__
+    std::ifstream file;
+#else
     boost::iostreams::stream<boost::iostreams::file_descriptor_source> file;
+#endif
     FileUtil::OpenFStream<std::ios_base::in>(file, filepath);
     if (!file.is_open()) {
         LOG_INFO(Core_Cheats, "GatewayCheat::LoadFile failed, file failed to open: {}", filepath);

@@ -9,7 +9,11 @@
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
 #include <fmt/format.h>
+#ifdef ENABLE_OPENSSL
 #include <openssl/rand.h>
+#else
+#include <cryptopp/osrng.h>
+#endif
 #include "common/alignment.h"
 #include "common/archives.h"
 #include "common/common_paths.h"
@@ -5440,8 +5444,14 @@ void Module::Interface::ExportTicketWrapped(Kernel::HLERequestContext& ctx) {
     std::vector<u8> key(0x10);
     std::vector<u8> iv(0x10);
 
+#ifdef ENABLE_OPENSSL
     RAND_bytes(key.data(), static_cast<int>(key.size()));
     RAND_bytes(iv.data(), static_cast<int>(iv.size()));
+#else
+    CryptoPP::AutoSeededRandomPool rng;
+    rng.GenerateBlock(key.data(), key.size());
+    rng.GenerateBlock(iv.data(), iv.size());
+#endif
 
     CryptoPP::CBC_Mode<CryptoPP::AES>::Encryption e(key.data(), key.size(), iv.data());
     e.ProcessData(ticket_data.data(), ticket_data.data(), ticket_data.size());

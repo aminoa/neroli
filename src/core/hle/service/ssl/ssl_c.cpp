@@ -2,7 +2,11 @@
 // Licensed under GPLv2 or any later version
 // Refer to the misc/licenses/gplv2.txt file included.
 
+#ifdef ENABLE_OPENSSL
 #include <openssl/rand.h>
+#else
+#include <cryptopp/osrng.h>
+#endif
 #include "common/archives.h"
 #include "common/common_types.h"
 #include "core/core.h"
@@ -75,7 +79,12 @@ void InstallInterfaces(Core::System& system) {
 
 void GenerateRandomData(std::vector<u8>& out) {
     // Fill the output buffer with random data.
+#ifdef ENABLE_OPENSSL
     RAND_bytes(out.data(), static_cast<int>(out.size()));
+#else
+    CryptoPP::AutoSeededRandomPool rng;
+    rng.GenerateBlock(out.data(), out.size());
+#endif
 }
 
 } // namespace Service::SSL

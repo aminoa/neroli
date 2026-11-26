@@ -33,7 +33,9 @@
 #include "core/hle/service/gsp/gsp.h"
 #include "core/hle/service/gsp/gsp_lcd.h"
 #include "core/hle/service/hid/hid.h"
+#ifdef ENABLE_HTTPLIB
 #include "core/hle/service/http/http_c.h"
+#endif
 #include "core/hle/service/ir/ir.h"
 #include "core/hle/service/ldr_ro/ldr_ro.h"
 #include "core/hle/service/mcu/mcu.h"
@@ -95,7 +97,11 @@ const std::array<ServiceModuleInfo, 41> service_module_map{
      {"PTM", 0x00040130'00002202, PTM::InstallInterfaces, false},
      {"QTM", 0x00040130'00004202, QTM::InstallInterfaces, false},
      {"CSND", 0x00040130'00002702, CSND::InstallInterfaces, false},
+#ifdef ENABLE_HTTPLIB
      {"HTTP", 0x00040130'00002902, HTTP::InstallInterfaces, false},
+#else
+     {"HTTP", 0x00040130'00002902, nullptr, false},
+#endif
      {"SOC", 0x00040130'00002E02, SOC::InstallInterfaces, false},
      {"SSL", 0x00040130'00002F02, SSL::InstallInterfaces, false},
      {"PS", 0x00040130'00003102, PS::InstallInterfaces, false},
