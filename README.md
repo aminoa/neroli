@@ -1,6 +1,6 @@
 # Neroli
 
-This is an experimental fork of [Azahar Emulator](https://github.com/azahar-emu/azahar) ported to run on the Nintendo Wii U. This currently runs the interpreter and software renderer.
+Neroli is an experimental fork of [Azahar Emulator](https://github.com/azahar-emu/azahar) ported to run on the Nintendo Wii U. This currently aims to run FastInterp and the software renderer.
 
 ## Building
 
