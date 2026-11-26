@@ -229,7 +229,7 @@ private:
     friend class boost::serialization::access;
 };
 
-enum class DisplayBufferMode : u32_le {
+enum class DisplayBufferMode : u32 {
     R8G8B8A8 = 0,
     R8G8B8 = 1,
     R5G6B5 = 2,
@@ -245,10 +245,10 @@ struct CaptureBufferInfo {
     INSERT_PADDING_BYTES(0x3); // Padding for alignment
     u32_le top_screen_left_offset;
     u32_le top_screen_right_offset;
-    DisplayBufferMode top_screen_format;
+    enum_le<DisplayBufferMode> top_screen_format;
     u32_le bottom_screen_left_offset;
     u32_le bottom_screen_right_offset;
-    DisplayBufferMode bottom_screen_format;
+    enum_le<DisplayBufferMode> bottom_screen_format;
 
 private:
     template <class Archive>

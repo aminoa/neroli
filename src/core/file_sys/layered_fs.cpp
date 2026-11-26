@@ -400,7 +400,7 @@ void LayeredFS::BuildFiles() {
 
         metadata.file_data_offset = current_data_offset;
         metadata.file_data_length = file->relocation.size;
-        current_data_offset += Common::AlignUp(metadata.file_data_length, 16);
+        current_data_offset += Common::AlignUp<u64>(metadata.file_data_length, 16);
         if (metadata.file_data_length != 0) {
             data_offset_map.emplace(metadata.file_data_offset, file);
         }

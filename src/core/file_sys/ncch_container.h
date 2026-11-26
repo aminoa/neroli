@@ -315,7 +315,7 @@ public:
      * Get the Program ID of the NCCH container
      * @return ResultStatus result of function
      */
-    Loader::ResultStatus ReadProgramId(u64_le& program_id);
+    Loader::ResultStatus ReadProgramId(u64& program_id);
 
     /**
      * Get the Extdata ID of the NCCH container

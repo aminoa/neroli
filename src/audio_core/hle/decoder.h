@@ -131,7 +131,7 @@ struct BinaryMessage {
 };
 static_assert(sizeof(BinaryMessage) == 32, "Unexpected struct size for BinaryMessage");
 
-enum_le<DecoderSampleRate> GetSampleRateEnum(u32 sample_rate);
+DecoderSampleRate GetSampleRateEnum(u32 sample_rate);
 
 class DecoderBase {
 public:

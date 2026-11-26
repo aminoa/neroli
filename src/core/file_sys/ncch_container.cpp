@@ -712,7 +712,7 @@ Loader::ResultStatus NCCHContainer::ReadOverrideRomFS(std::shared_ptr<RomFSReade
     return Loader::ResultStatus::ErrorNotUsed;
 }
 
-Loader::ResultStatus NCCHContainer::ReadProgramId(u64_le& program_id) {
+Loader::ResultStatus NCCHContainer::ReadProgramId(u64& program_id) {
     Loader::ResultStatus result = LoadHeader();
     if (result != Loader::ResultStatus::Success)
         return result;

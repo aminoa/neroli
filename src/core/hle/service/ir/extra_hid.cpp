@@ -196,8 +196,8 @@ void ExtraHID::HandleReadCalibrationDataRequest(std::span<const u8> request_buf)
     ReadCalibrationDataRequest request;
     std::memcpy(&request, request_buf.data(), sizeof(request));
 
-    const u16 offset = Common::AlignDown(request.offset, 16);
-    const u16 size = Common::AlignDown(request.size, 16);
+    const u16 offset = Common::AlignDown<u16>(request.offset, 16);
+    const u16 size = Common::AlignDown<u16>(request.size, 16);
 
     if (static_cast<std::size_t>(offset + size) > calibration_data.size()) {
         LOG_ERROR(Service_IR, "Read beyond the end of calibration data! (offset={}, size={})",

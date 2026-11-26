@@ -82,7 +82,7 @@ public:
     Ticket& GetTicket();
     const Ticket& GetTicket() const;
     const TitleMetadata& GetTitleMetadata() const;
-    std::array<u64, 0x30>& GetDependencies();
+    std::array<u64_le, 0x30>& GetDependencies();
     u32 GetCoreVersion() const;
     const std::unique_ptr<Loader::SMDH>& GetSMDH() const;
 

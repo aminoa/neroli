@@ -229,7 +229,7 @@ const TitleMetadata& CIAContainer::GetTitleMetadata() const {
     return cia_tmd;
 }
 
-std::array<u64, 0x30>& CIAContainer::GetDependencies() {
+std::array<u64_le, 0x30>& CIAContainer::GetDependencies() {
     return cia_metadata.dependencies;
 }
 
@@ -242,7 +242,7 @@ const std::unique_ptr<Loader::SMDH>& CIAContainer::GetSMDH() const {
 }
 
 u64 CIAContainer::GetCertificateOffset() const {
-    return Common::AlignUp(cia_header.header_size, CIA_SECTION_ALIGNMENT);
+    return Common::AlignUp<u32>(cia_header.header_size, CIA_SECTION_ALIGNMENT);
 }
 
 u64 CIAContainer::GetTicketOffset() const {

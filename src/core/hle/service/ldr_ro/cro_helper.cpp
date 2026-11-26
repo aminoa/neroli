@@ -1523,7 +1523,7 @@ std::tuple<VAddr, u32> CROHelper::GetExecutablePages() const {
         SegmentEntry entry;
         GetEntry(system.Memory(), i, entry);
         if (entry.type == SegmentType::Code && entry.size != 0) {
-            VAddr begin = Common::AlignDown(entry.offset, Memory::CITRA_PAGE_SIZE);
+            VAddr begin = Common::AlignDown<u32>(entry.offset, Memory::CITRA_PAGE_SIZE);
             VAddr end = Common::AlignUp(entry.offset + entry.size, Memory::CITRA_PAGE_SIZE);
             return std::make_tuple(begin, end - begin);
         }

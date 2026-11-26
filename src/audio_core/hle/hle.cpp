@@ -387,8 +387,8 @@ void DspHle::Impl::AudioPipeWriteStructAddresses() {
 size_t DspHle::Impl::CurrentRegionIndex() const {
     // The region with the higher frame counter is chosen unless there is wraparound.
     // This function only returns a 0 or 1.
-    const u16 frame_counter_0 = dsp_memory->region_0.frame_counter;
-    const u16 frame_counter_1 = dsp_memory->region_1.frame_counter;
+    const u16 frame_counter_0 = dsp_memory->regions.region_0.frame_counter;
+    const u16 frame_counter_1 = dsp_memory->regions.region_1.frame_counter;
 
     if (frame_counter_0 == 0xFFFFu && frame_counter_1 != 0xFFFEu) {
         // Wraparound has occurred.
@@ -404,11 +404,11 @@ size_t DspHle::Impl::CurrentRegionIndex() const {
 }
 
 HLE::SharedMemory& DspHle::Impl::ReadRegion() {
-    return CurrentRegionIndex() == 0 ? dsp_memory->region_0 : dsp_memory->region_1;
+    return CurrentRegionIndex() == 0 ? dsp_memory->regions.region_0 : dsp_memory->regions.region_1;
 }
 
 HLE::SharedMemory& DspHle::Impl::WriteRegion() {
-    return CurrentRegionIndex() != 0 ? dsp_memory->region_0 : dsp_memory->region_1;
+    return CurrentRegionIndex() != 0 ? dsp_memory->regions.region_0 : dsp_memory->regions.region_1;
 }
 
 StereoFrame16 DspHle::Impl::GenerateCurrentFrame() {

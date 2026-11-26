@@ -52,7 +52,7 @@ static_assert(sizeof(NCCHFilePath) == 0x14, "NCCHFilePath has wrong size!");
 Path MakeNCCHArchivePath(u64 tid, Service::FS::MediaType media_type) {
     NCCHArchivePath path;
     path.tid = static_cast<u64_le>(tid);
-    path.media_type = static_cast<u32_le>(media_type);
+    path.media_type = static_cast<u32>(media_type);
     path.unknown = 0;
     std::vector<u8> archive(sizeof(path));
     std::memcpy(archive.data(), &path, sizeof(path));
