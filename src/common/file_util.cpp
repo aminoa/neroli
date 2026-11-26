@@ -12,8 +12,10 @@
 #include <memory>
 #include <sstream>
 #include <unordered_map>
+#ifndef __WIIU__
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
+#endif
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
 #include <fmt/format.h>
@@ -886,10 +888,15 @@ const std::string GetHomeDirectory() {
         if (envvar) {
             home_path = envvar;
         } else {
+#ifdef __WIIU__
+            // Cafe OS has no users or home directories; keep data on the SD card.
+            home_path = "fs:/vol/external01";
+#else
             auto pw = getpwuid(getuid());
             ASSERT_MSG(pw,
                        "$HOME isn’t defined, and the current user can’t be found in /etc/passwd.");
             home_path = pw->pw_dir;
+#endif
         }
     }
     return home_path;
@@ -1511,6 +1518,13 @@ std::size_t IOFile::ReadAtImpl(void* data, std::size_t byte_count, std::size_t o
     int64_t rv = FREAD(data, 1, byte_count, m_file);
     FSEEK(m_file, pos, RETRO_VFS_SEEK_POSITION_START);
     read = static_cast<std::size_t>(rv);
+#elif defined(__WIIU__)
+    // Cafe OS has no pread; emulate it by seeking under a lock.
+    std::scoped_lock lock(m_file_pos_mutex);
+    const auto pos = ftello(m_file);
+    fseeko(m_file, offset, SEEK_SET);
+    read = std::fread(data, 1, byte_count, m_file);
+    fseeko(m_file, pos, SEEK_SET);
 #else
     read = pread(fileno(m_file), data, byte_count, offset);
 #endif
@@ -1652,6 +1666,13 @@ bool IOFile::Resize(u64 size) {
     return m_good;
 }
 
+#ifdef __WIIU__
+// Plain standard streams are enough on Cafe OS, so Boost.Iostreams need not be built.
+template <>
+void OpenFStream<std::ios_base::in>(std::ifstream& fstream, const std::string& filename) {
+    fstream.open(filename, std::ios_base::binary);
+}
+#else
 template <typename T>
 using boost_iostreams = boost::iostreams::stream<T>;
 
@@ -1682,6 +1703,7 @@ void OpenFStream<std::ios_base::out>(
     boost::iostreams::file_descriptor_sink file_descriptor_sink(fd, boost::iostreams::close_handle);
     fstream.open(file_descriptor_sink);
 }
+#endif // __WIIU__
 } // namespace FileUtil
 
 SERIALIZE_EXPORT_IMPL(FileUtil::IOFile)

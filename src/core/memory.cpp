@@ -1129,16 +1129,21 @@ bool MemorySystem::WriteExclusive8(const VAddr addr, const u8 data, const u8 exp
     return WriteExclusive<u8>(addr, data, expected);
 }
 
+// The compare-and-swap primitives take plain integers, so these pass the values' guest
+// (little-endian) byte representation rather than instantiating with the swapped types.
 bool MemorySystem::WriteExclusive16(const VAddr addr, const u16 data, const u16 expected) {
-    return WriteExclusive<u16_le>(addr, data, expected);
+    return WriteExclusive<u16>(addr, std::bit_cast<u16>(u16_le{data}),
+                               std::bit_cast<u16>(u16_le{expected}));
 }
 
 bool MemorySystem::WriteExclusive32(const VAddr addr, const u32 data, const u32 expected) {
-    return WriteExclusive<u32_le>(addr, data, expected);
+    return WriteExclusive<u32>(addr, std::bit_cast<u32>(u32_le{data}),
+                               std::bit_cast<u32>(u32_le{expected}));
 }
 
 bool MemorySystem::WriteExclusive64(const VAddr addr, const u64 data, const u64 expected) {
-    return WriteExclusive<u64_le>(addr, data, expected);
+    return WriteExclusive<u64>(addr, std::bit_cast<u64>(u64_le{data}),
+                               std::bit_cast<u64>(u64_le{expected}));
 }
 
 void MemorySystem::WriteBlock(const Kernel::Process& process, const VAddr dest_addr,

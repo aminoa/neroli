@@ -265,12 +265,12 @@ struct SourceConfiguration {
         /// Note a sample takes up different number of bytes in different buffer formats.
         u32_dsp length;
 
-        enum class MonoOrStereo : u16_le {
+        enum class MonoOrStereo : u16 {
             Mono = 1,
             Stereo = 2,
         };
 
-        enum class Format : u16_le {
+        enum class Format : u16 {
             PCM8 = 0,
             PCM16 = 1,
             ADPCM = 2,
@@ -359,13 +359,13 @@ struct DspConfiguration {
     u16_le output_buffer_count;
     INSERT_PADDING_DSPWORDS(2);
 
-    enum class OutputFormat : u16_le {
+    enum class OutputFormat : u16 {
         Mono = 0,
         Stereo = 1,
         Surround = 2,
     };
 
-    OutputFormat output_format;
+    enum_le<OutputFormat> output_format;
 
     u16_le clipping_mode;        ///< Not sure of the exact gain equation for the limiter.
     u16_le headphones_connected; ///< Application updates the DSP on headphone status.
@@ -531,12 +531,12 @@ union DspMemory {
         u8 unused_1[0x18000];
         SharedMemory region_1;
         u8 unused_2[0x8000];
-    };
+    } regions;
 };
 static_assert(sizeof(DspMemory) == 0x80000, "Incorrect DSP memory size");
-static_assert(offsetof(DspMemory, region_0) == region0_offset,
+static_assert(offsetof(DspMemory, regions.region_0) == region0_offset,
               "DSP region 0 is at the wrong offset");
-static_assert(offsetof(DspMemory, region_1) == region1_offset,
+static_assert(offsetof(DspMemory, regions.region_1) == region1_offset,
               "DSP region 1 is at the wrong offset");
 
 // Structures must have an offset that is a multiple of two.

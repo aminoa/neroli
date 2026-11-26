@@ -123,6 +123,12 @@ private:
 
     using StorageTypeWithEndian = typename AddEndian<StorageType, EndianTag>::type;
 
+    // The member itself stays a plain integer: the swapped wrapper types have constructors,
+    // which GCC rejects in anonymous structs. Bytes are swapped on access instead.
+    [[nodiscard]] static constexpr StorageType SwapIfNeeded(StorageType value) {
+        return std::bit_cast<StorageType>(StorageTypeWithEndian{value});
+    }
+
 public:
     /// Constants to allow limited introspection of fields if needed
     static constexpr std::size_t position = Position;
@@ -172,11 +178,11 @@ public:
     }
 
     constexpr void Assign(const T& value) {
-        storage = (static_cast<StorageType>(storage) & ~mask) | FormatValue(value);
+        storage = SwapIfNeeded((SwapIfNeeded(storage) & ~mask) | FormatValue(value));
     }
 
     [[nodiscard]] constexpr T Value() const {
-        return ExtractValue(storage);
+        return ExtractValue(SwapIfNeeded(storage));
     }
 
     [[nodiscard]] constexpr explicit operator bool() const {
@@ -184,7 +190,7 @@ public:
     }
 
 private:
-    StorageTypeWithEndian storage;
+    StorageType storage;
 
     static_assert(bits + position <= 8 * sizeof(T), "Bitfield out of range");
 
