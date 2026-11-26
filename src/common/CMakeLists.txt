@@ -113,9 +113,8 @@ add_library(citra_common STATIC EXCLUDE_FROM_ALL
 target_include_directories(citra_common PUBLIC ${CMAKE_BINARY_DIR}/src)
 
 if (WIIU)
-  # Shim headers for POSIX and library facilities that Cafe OS lacks
-  target_include_directories(citra_common BEFORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/cafe/include)
-  target_sources(citra_common PRIVATE cafe/atomic64.cpp)
+  target_include_directories(citra_common BEFORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ppc/include)
+  target_sources(citra_common PRIVATE ppc/atomic64.cpp)
 endif()
 
 if (UNIX AND NOT APPLE)
