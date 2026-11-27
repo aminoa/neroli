@@ -15,5 +15,5 @@ git clone --recursive https://github.com/aminoa/neroli.git
 - From the repository root, run the CI build script inside the devkitPPC container:
 
 ```sh
-./tools/enter-docker-dev-container/wiiu.sh ./.ci/wiiu.sh
+./tools/enter-docker-dev-container/cafe.sh ./.ci/cafe.sh
 ```

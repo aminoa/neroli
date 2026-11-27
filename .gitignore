@@ -27,6 +27,7 @@ src/common/scm_rev.cpp
 cmake-build-debug/
 cmake-build-release/
 CMakeLists.txt.user*
+.DS_Store
 
 # *nix related
 # Common convention for backup or temporary files
@@ -66,4 +67,4 @@ GIT-TAG
 verify/
 
 # Local Wii U build tooling
-tools/wiiu/
+tools/cafe/
